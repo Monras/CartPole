@@ -12,6 +12,7 @@ import numpy as np
 
 
 class CartPoleEnv(gym.Env):
+
     """
     Description:
         A pole is attached by an un-actuated joint to a cart, which moves along a frictionless track. The pendulum starts upright, and the goal is to prevent it from falling over by increasing and reducing the cart's velocity.
@@ -20,9 +21,9 @@ class CartPoleEnv(gym.Env):
     Observation:
         Type: Box(4)
         Num	Observation                 Min         Max
-        0	Cart Position             -4.8            4.8
+        0	Cart Position             -Inf            Inf
         1	Cart Velocity             -Inf            Inf
-        2	Pole Angle                 -24°           24°
+        2	Pole Angle                 -360°           360°
         3	Pole Velocity At Tip      -Inf            Inf
 
     Actions:
@@ -36,7 +37,7 @@ class CartPoleEnv(gym.Env):
         Reward is 1 for every step taken, including the termination step
     Starting State:
         All observations are assigned a uniform random value between ±0.05
-    Episode Termination:
+    Episode Termination: (ändrar här!)
         Pole Angle is more than ±12°
         Cart Position is more than ±2.4 (center of the cart reaches the edge of the display)
         Episode length is greater than 200
@@ -51,25 +52,34 @@ class CartPoleEnv(gym.Env):
 
     def __init__(self):
         self.gravity = 9.8
-        self.masscart = 1.0
-        self.masspole = 0.1
+        self.masscart = 1.0  # Mass of the cart
+        self.masspole = 0.1  # Mass of the pendulum (constant!)
         self.total_mass = (self.masspole + self.masscart)
-        self.length = 0.5  # actually half the pole's length
+        self.length = 0.5  # "actually half the pole's length", real length is double this
         self.polemass_length = (self.masspole * self.length)
         self.force_mag = 10.0
-        self.tau = 0.02  # seconds between state updates
+        self.tau = 0.02  # seconds between state updates  (time step)
         self.kinematics_integrator = 'euler'
+        self.pole_limit_angle = math.pi/2  # Limit angle for the pendulum
+
+        # Initial values of the pendulum
+        self.theta_start = math.pi
+        self.x_start = 0
+        self.x_dot_start = 0
+
+        # State values
+        self.theta_dot = 0
+        self.M = self.masspole
+        self.L = self.length*2
+
 
         # Angle at which to fail the episode
-        self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 2.4
+        self.theta_threshold_radians = self.pole_limit_angle #12 * 2 * math.pi / 360
+        self.x_threshold = np.Inf  # remove?
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation is still within bounds
-        high = np.array([
-            self.x_threshold * 2,
-            np.finfo(np.float32).max,
-            self.theta_threshold_radians * 2,
-            np.finfo(np.float32).max])
+        high = np.array([self.x_threshold * 2, np.finfo(np.float32).max, self.theta_threshold_radians * 2,
+                         np.finfo(np.float32).max])
 
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(-high, high, dtype=np.float32)
@@ -86,8 +96,11 @@ class CartPoleEnv(gym.Env):
 
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+        # unpacks the initial state values
         state = self.state
         x, x_dot, theta, theta_dot = state
+
+        # Calculates the force (non-linear equations)
         force = self.force_mag if action == 1 else -self.force_mag
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
@@ -95,6 +108,9 @@ class CartPoleEnv(gym.Env):
         thetaacc = (self.gravity * sintheta - costheta * temp) / (
                     self.length * (4.0 / 3.0 - self.masspole * costheta * costheta / self.total_mass))
         xacc = temp - self.polemass_length * thetaacc * costheta / self.total_mass
+
+        theta_old = theta  # saves the old theta
+        # Solves the non-linear equations
         if self.kinematics_integrator == 'euler':
             x = x + self.tau * x_dot
             x_dot = x_dot + self.tau * xacc
@@ -105,14 +121,21 @@ class CartPoleEnv(gym.Env):
             x = x + self.tau * x_dot
             theta_dot = theta_dot + self.tau * thetaacc
             theta = theta + self.tau * theta_dot
-        self.state = (x, x_dot, theta, theta_dot)
-        done = x < -self.x_threshold \
-               or x > self.x_threshold \
-               or theta < -self.theta_threshold_radians \
-               or theta > self.theta_threshold_radians
-        done = bool(done)
 
-        if not done:
+        self.state = (x, x_dot, theta, theta_dot)  # updates the state values
+
+        done = False
+        # Checks if the pendulum is positioned over the cart
+        if (math.pi / 2 <= theta_old <= math.pi) or (math.pi <= theta_old <= math.pi * 3 / 2):
+            # checks if the old theta was underneath the "floor", the it's OK to swing pass.
+            done = True
+        if theta < -self.theta_threshold_radians or theta > self.theta_threshold_radians:
+            #done = x < -self.x_threshold or x > self.x_threshold
+            print("under the floor!")
+            #print(theta*180/math.pi)
+            done = False
+
+        if done is False:
             reward = 1.0
         elif self.steps_beyond_done is None:
             # Pole just fell!
@@ -128,7 +151,16 @@ class CartPoleEnv(gym.Env):
         return np.array(self.state), reward, done, {}
 
     def reset(self):
-        self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
+        #self.state = self.np_random.uniform(low=1, high=10000, size=(4,))  # creates a random uniform array = [x, x_dot, theta, theta_dot]
+
+        self.M = self.np_random.uniform(low=1, high=2)
+        self.L = self.np_random.uniform(low=1, high=2)
+        x = self.x_start
+        x_dot = self.x_dot_start
+        theta = self.theta_start
+        theta_dot = self.np_random.uniform(low=7, high=8)
+        self.state = [x, x_dot, theta, theta_dot]
+
         self.steps_beyond_done = None
         return np.array(self.state)
 
@@ -136,7 +168,7 @@ class CartPoleEnv(gym.Env):
         screen_width = 600
         screen_height = 400
 
-        world_width = self.x_threshold * 2
+        world_width = 10 #self.x_threshold * 2
         scale = screen_width / world_width
         carty = 100  # TOP OF CART
         polewidth = 10.0
