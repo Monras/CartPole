@@ -66,15 +66,14 @@ class CartPoleEnv(gym.Env):
         self.theta_start = math.pi
         self.x_start = 0
         self.x_dot_start = 0
-
+        self.above = False  # initialize the pendulum beneath the floor
         # State values
         self.theta_dot = 0
-        self.M = self.masspole
-        self.L = self.length*2
+
 
 
         # Angle at which to fail the episode
-        self.theta_threshold_radians = self.pole_limit_angle #12 * 2 * math.pi / 360
+        self.theta_threshold_radians = self.pole_limit_angle  # 12 * 2 * math.pi / 360
         self.x_threshold = np.Inf  # remove?
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation is still within bounds
@@ -94,20 +93,47 @@ class CartPoleEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def swingup(self, theta):
+        """Swings up the pendulum"""
+
+        if (3*math.pi / 2 <= theta <= 2*math.pi) or (0 <= theta <= math.pi / 2):
+            # pendeln är nu ovanför marken!
+            self.above = True
+
+        if self.above is False:
+            if (math.pi / 2 <= theta <= math.pi) or (math.pi <= theta <= math.pi * 3 / 2):
+                # Checks if the pendulum is underneath the floor
+                # då är pendeln under marken, har ej passerat. Fortsätt
+                return False
+            else:
+                print("något har blivit fel!")
+
+        if self.above is True:
+            if (math.pi / 2 <= theta <= math.pi) or (math.pi <= theta <= math.pi * 3 / 2):
+                # pendeln har passerat marken
+                # avbryt!
+                return True
+        if (theta <= -math.pi/2) or (5/2 * math.pi <= theta):
+            # kollar att pendeln inte går för långt, snurrar flera varv
+            return True
+
     def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+
         # unpacks the initial state values
         state = self.state
-        x, x_dot, theta, theta_dot = state
+        x, x_dot, theta, theta_dot, length, polemass = state
+        polemass_length = polemass*length
+        total_mass = self.masscart + polemass
 
         # Calculates the force (non-linear equations)
         force = self.force_mag if action == 1 else -self.force_mag
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
-        temp = (force + self.polemass_length * theta_dot * theta_dot * sintheta) / self.total_mass
+        temp = (force + polemass_length * theta_dot * theta_dot * sintheta) / total_mass
         thetaacc = (self.gravity * sintheta - costheta * temp) / (
-                    self.length * (4.0 / 3.0 - self.masspole * costheta * costheta / self.total_mass))
-        xacc = temp - self.polemass_length * thetaacc * costheta / self.total_mass
+                    length * (4.0 / 3.0 - polemass * costheta * costheta / total_mass))
+        xacc = temp - polemass_length * thetaacc * costheta / total_mass
 
         theta_old = theta  # saves the old theta
         # Solves the non-linear equations
@@ -122,19 +148,16 @@ class CartPoleEnv(gym.Env):
             theta_dot = theta_dot + self.tau * thetaacc
             theta = theta + self.tau * theta_dot
 
-        self.state = (x, x_dot, theta, theta_dot)  # updates the state values
-
-        done = False
+        self.state = (x, x_dot, theta, theta_dot, length, polemass)  # updates the state values
+        print("theta: ", theta*180/math.pi)
+        print("polemass: ", polemass)
+        print("length:", length)
+        print("above: ", self.above)
         # Checks if the pendulum is positioned over the cart
-        if (math.pi / 2 <= theta_old <= math.pi) or (math.pi <= theta_old <= math.pi * 3 / 2):
-            # checks if the old theta was underneath the "floor", the it's OK to swing pass.
-            done = True
-        if theta < -self.theta_threshold_radians or theta > self.theta_threshold_radians:
-            #done = x < -self.x_threshold or x > self.x_threshold
-            print("under the floor!")
-            #print(theta*180/math.pi)
-            done = False
+        done = self.swingup(theta)
 
+
+        # checks if the pendulum is still in the allowed state, if done = True then its ok.
         if done is False:
             reward = 1.0
         elif self.steps_beyond_done is None:
@@ -151,16 +174,17 @@ class CartPoleEnv(gym.Env):
         return np.array(self.state), reward, done, {}
 
     def reset(self):
-        #self.state = self.np_random.uniform(low=1, high=10000, size=(4,))  # creates a random uniform array = [x, x_dot, theta, theta_dot]
-
+        # self.state = self.np_random.uniform(low=1, high=10000, size=(4,))  # creates a random uniform array = [x, x_dot, theta, theta_dot]
         self.M = self.np_random.uniform(low=1, high=2)
         self.L = self.np_random.uniform(low=1, high=2)
         x = self.x_start
         x_dot = self.x_dot_start
         theta = self.theta_start
-        theta_dot = self.np_random.uniform(low=7, high=8)
-        self.state = [x, x_dot, theta, theta_dot]
-
+        theta_dot = self.np_random.uniform(low=7, high=8)  # 7 - 8 gör att vi kan svinga upp pendeln
+        length = self.np_random.uniform(low=1, high=2)
+        polemass = self.np_random.uniform(low=0.1, high=1)
+        self.state = [x, x_dot, theta, theta_dot, length, polemass]
+        self.above = False
         self.steps_beyond_done = None
         return np.array(self.state)
 
@@ -168,7 +192,7 @@ class CartPoleEnv(gym.Env):
         screen_width = 600
         screen_height = 400
 
-        world_width = 10 #self.x_threshold * 2
+        world_width = 10 # self.x_threshold * 2
         scale = screen_width / world_width
         carty = 100  # TOP OF CART
         polewidth = 10.0
