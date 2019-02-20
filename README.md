@@ -9,6 +9,8 @@ Att göra/testa:
  - hur många lager/neuroner behövs
  - läs på mer om hur tflearn och tensorflow funkar
  - Tune force magnituden för create data
+ - Spara training_data till en text fil och samla på många simulationer med bra poäng. Sen packa upp dom och träna modellen. 
+ - Spara en bra modell i en textfil?
 
 
 ## Gym's repository
