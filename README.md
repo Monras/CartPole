@@ -8,6 +8,7 @@ Att göra/testa:
  - Hitta bättre träningsdata
  - hur många lager/neuroner behövs
  - läs på mer om hur tflearn och tensorflow funkar
+ - Tune force magnituden för create data
 
 
 ## Gym's repository
