@@ -1,6 +1,14 @@
 # By Måns Rasmussen and Gustaf Holte
 """Simulates an inverted pendulum and balance it using Neural Network coding"""
+
+"""
+Att göra/testa: 
+ - Ändra action från 1,0 till andra diskreta värden på force
+ - Hitta bättre träningsdata
+
+"""
 # imports packages
+import csv
 from gym_kod import CartPoleEnv as gym
 import random as rnd
 import numpy as np
@@ -18,6 +26,25 @@ N_runs = 100  # Number of different runs of cartpole simulations
 N_steps_per_run = 50  # Maximum number of steps per run for each simulation
 score_limit = 3  # minimum score limit
 keep_prob = 0.8
+
+def save_to_csvfile(simulations, steps_run, training_data):
+    """Saves data to an csv file"""
+    with open('training_data_test.csv', mode='w') as training_file:
+        print(training_data)
+        filewriter = csv.writer(training_file, delimiter=':', escapechar='"', quoting=csv.QUOTE_NONE)
+        filewriter.writerow(['x x_dot theta theta_dot polelength polemass ', ' Action'])
+        sim = 1
+        for sim in range(simulations):
+            print("sim: ", sim)
+            filewriter.writerow(['Simulation ', sim])
+            for steps in steps_run:
+                i = 0
+                for i in range(int(steps)-1):
+                    print("step: ", i)
+                    print("trainig_data: ", training_data[0][i])
+                    print("trainig_data: ", training_data[1][i])
+                    filewriter.writerow([training_data[0][i], training_data[1][i]])
+
 
 def Neural_Network(input_size):
     """Creates a Neural network, returns a neural network"""
@@ -63,7 +90,7 @@ def create_training_data():
         #prev_observation = []
         for _ in range(N_steps_per_run):
             action = rnd.randrange(0, 2)  # creates a random number: 0 or 1
-            observation, reward, done,force, info = env.step(action)  # updates the observation with given action
+            observation, reward, done, force, info = env.step(action)  # updates the observation with given action
             #env.render()  # updates the animation
             """saves the next observation and action"""
             runs_memory.append([observation, action])  # saves the action that gave that observation
@@ -100,6 +127,8 @@ def create_training_data():
     plt.xlabel('scores')
     plt.ylabel('# of runs')
     plt.show()
+
+    save_to_csvfile(len(accepted_scores), accepted_scores, training_data)
 
     return training_data
 
@@ -175,6 +204,7 @@ if __name__ == "__main__":
     # random_simulation()
     env = gym()
     training_data = create_training_data()
+    """
     NN = False
     for _ in range(0, 2):
         env.reset()
@@ -182,3 +212,4 @@ if __name__ == "__main__":
         #model = tflearn.DNN(NN, tensorboard_verbose=3)
         training_data = NN_simulation(env, NN)
 
+"""
