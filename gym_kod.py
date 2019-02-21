@@ -79,10 +79,10 @@ class CartPoleEnv(gym.Env):
         high = np.array([self.x_threshold * 2, np.finfo(np.float32).max, self.theta_threshold_radians * 2,
                          np.finfo(np.float32).max])
 
-        self.action_space = spaces.Discrete(2)
+        #self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
-        self.seed()
+        self.seed()  # enter number if you want to seed the random values
         self.viewer = None
         self.state = None
 
@@ -116,16 +116,20 @@ class CartPoleEnv(gym.Env):
             return True
 
     def step(self, action):
-        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+        #assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         # unpacks the initial state values
         state = self.state
-        x, x_dot, theta, theta_dot, length, polemass = state
+        x, x_dot, theta, theta_dot, length, polemass, force = state
         polemass_length = polemass*length
         total_mass = self.masscart + polemass
 
+        # Set the force depending on the action
+        #force = self.force if action == 1 else -self.force
+        if action is not None:
+            force = action
+
         # Calculates the force (non-linear equations)
-        force = self.force if action == 1 else -self.force
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
         temp = (force + polemass_length * theta_dot * theta_dot * sintheta) / total_mass
@@ -145,8 +149,8 @@ class CartPoleEnv(gym.Env):
             x = x + self.tau * x_dot
             theta_dot = theta_dot + self.tau * thetaacc
             theta = theta + self.tau * theta_dot
-
-        self.state = (x, x_dot, theta, theta_dot, length, polemass)  # updates the state values
+        action = force
+        self.state = (x, x_dot, theta, theta_dot, length, polemass, action)  # updates the state values
 
         # Checks if the pendulum is positioned over the cart
         done = self.limit_check(theta, x)
@@ -158,20 +162,20 @@ class CartPoleEnv(gym.Env):
         else:
             reward = 0.0
 
-        return np.array(self.state), reward, done, force, {}
+        return np.array(self.state), reward, done, {}
 
     def reset(self):
         # self.state = self.np_random.uniform(low=1, high=10000, size=(4,))  # creates a random uniform array = [x, x_dot, theta, theta_dot]
         self.M = self.np_random.uniform(low=1, high=2)
         self.L = self.np_random.uniform(low=1, high=2)
-        self.force = self.force_mag  #rnd.randrange(50,300, 10)##
+        force = rnd.randrange(start=-150, stop=150, step=10)#self.force_mag  #rnd.randrange(50,300, 10)##
         x = self.x_start
         x_dot = self.x_dot_start
         theta = self.theta_start
-        theta_dot = 0 #self.np_random.uniform(low=7, high=8)*rnd.randrange(-1,2, 2)  # 7-8 is enough force to be able to swing the pendelum
-        length = self.np_random.uniform(low=1, high=2)
-        polemass = self.np_random.uniform(low=0.1, high=1)
-        self.state = (x, x_dot, theta, theta_dot, length, polemass)
+        theta_dot = self.theta_dot #self.np_random.uniform(low=7, high=8)*rnd.randrange(-1,2, 2)  # 7-8 is enough force to be able to swing the pendelum
+        length = self.L
+        polemass = self.M #self.np_random.uniform(low=0.1, high=1)
+        self.state = (x, x_dot, theta, theta_dot, length, polemass, force)
         self.above = False
         self.steps_beyond_done = None
         return np.array(self.state)
