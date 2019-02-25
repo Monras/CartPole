@@ -4,14 +4,10 @@ Cartpole main  = koden som kör programmet
 gym_kod = gym koden med våra fixade variabler och villkor
 
 Att göra/testa: 
- - Ändra action från 1,0 till andra diskreta värden på force för ett intervall!
- -- Ger bättre träningsdata, kör fler runs
  - hur många lager/neuroner behövs (testa!)
  - läs på mer om hur tflearn och tensorflow funkar
- - Tune force magnituden för create data
- - Spara training_data till en text fil och samla på många simulationer med bra poäng. Sen packa upp dom och träna modellen. 
- - Spara en bra modell i en textfil?
- - Ändra output till större array istället -> action är för ett större intervall
+ - Träna upp stegvis för olika vinklar! 90 -> 45 -> 15
+ - Testa olika värden på krafterna, ha fler steg? 
 
 
 ## Gym's repository
