@@ -62,7 +62,7 @@ class CartPoleEnv(gym.Env):
         self.kinematics_integrator = 'euler'
 
        # Limit angles for the pendulum
-        self.pole_limit_angle = 45*math.pi/180  # Limit angle for the pendulum
+        self.pole_limit_angle = 85*math.pi/180  # Limit angle for the pendulum
 
         # Initial values of the pendulum
         self.theta_start = math.pi
@@ -73,16 +73,16 @@ class CartPoleEnv(gym.Env):
 
         # Angle at which to fail the episode
         self.theta_threshold_radians = self.pole_limit_angle  # 12 * 2 * math.pi / 360
-        self.x_threshold = 5 #np.Inf  # remove?
+        self.x_threshold = 7 #np.Inf  # remove?
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation is still within bounds
         high = np.array([self.x_threshold * 2, np.finfo(np.float32).max, self.theta_threshold_radians * 2,
                          np.finfo(np.float32).max])
 
-        self.action_space = spaces.Discrete(2)
+        #self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
-        self.seed()
+        self.seed()  # enter number if you want to seed the random values
         self.viewer = None
         self.state = None
 
@@ -95,7 +95,7 @@ class CartPoleEnv(gym.Env):
     def limit_check(self, theta, x):
         """Checks if the cartpole is inside the limits given"""
 
-        if 0 <= x < 2*self.x_threshold or - 2*self.x_threshold < x <= 0:
+        if 0 <= x < self.x_threshold or - self.x_threshold < x <= 0:
             """Checks if the cartpole is inside the tracks limits"""
             if (2*math.pi - self.pole_limit_angle) <= theta <= 2*math.pi or 2*math.pi <= theta <= 2*math.pi + self.pole_limit_angle:
                 """Checks if the pendulum is above ground (swingup clockwise), if so, set self.above = True"""
@@ -116,7 +116,7 @@ class CartPoleEnv(gym.Env):
             return True
 
     def step(self, action):
-        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+        #assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         # unpacks the initial state values
         state = self.state
@@ -124,8 +124,11 @@ class CartPoleEnv(gym.Env):
         polemass_length = polemass*length
         total_mass = self.masscart + polemass
 
+        # Set the force depending on the action
+        #force = self.force if action == 1 else -self.force
+        force = action
+
         # Calculates the force (non-linear equations)
-        force = self.force if action == 1 else -self.force
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
         temp = (force + polemass_length * theta_dot * theta_dot * sintheta) / total_mass
@@ -145,7 +148,6 @@ class CartPoleEnv(gym.Env):
             x = x + self.tau * x_dot
             theta_dot = theta_dot + self.tau * thetaacc
             theta = theta + self.tau * theta_dot
-
         self.state = (x, x_dot, theta, theta_dot, length, polemass)  # updates the state values
 
         # Checks if the pendulum is positioned over the cart
@@ -158,19 +160,20 @@ class CartPoleEnv(gym.Env):
         else:
             reward = 0.0
 
-        return np.array(self.state), reward, done, force, {}
+        return np.array(self.state), reward, done, {}
 
     def reset(self):
         # self.state = self.np_random.uniform(low=1, high=10000, size=(4,))  # creates a random uniform array = [x, x_dot, theta, theta_dot]
         self.M = self.np_random.uniform(low=1, high=2)
         self.L = self.np_random.uniform(low=1, high=2)
-        self.force = self.force_mag  #rnd.randrange(50,300, 10)##
+        #force = rnd.randrange(start=-400, stop=400, step=100)#self.force_mag  #rnd.randrange(50,300, 10)##
+        #print("First force for this run: ", force)
         x = self.x_start
         x_dot = self.x_dot_start
         theta = self.theta_start
-        theta_dot = 0 #self.np_random.uniform(low=7, high=8)*rnd.randrange(-1,2, 2)  # 7-8 is enough force to be able to swing the pendelum
-        length = self.np_random.uniform(low=1, high=2)
-        polemass = self.np_random.uniform(low=0.1, high=1)
+        theta_dot = self.theta_dot #self.np_random.uniform(low=7, high=8)*rnd.randrange(-1,2, 2)  # 7-8 is enough force to be able to swing the pendelum
+        length = self.L
+        polemass = self.M #self.np_random.uniform(low=0.1, high=1)
         self.state = (x, x_dot, theta, theta_dot, length, polemass)
         self.above = False
         self.steps_beyond_done = None
