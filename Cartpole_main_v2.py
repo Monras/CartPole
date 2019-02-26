@@ -182,7 +182,7 @@ def random_simulation():
                 print("Episode finished after {} timesteps".format(t + 1))
                 break
 
-def NN_simulation(env, NN, theta_lim, file_name=''):
+def NN_simulation(env, NN, theta_lim, save_data=False, file_name=''):
     """Runs N_runs simulations using the trained Neural Network,
        returns the new training data"""
     scores = []
@@ -200,7 +200,7 @@ def NN_simulation(env, NN, theta_lim, file_name=''):
         prev_obs = []
         output = []
         for _ in range(N_steps_per_run_2):
-            env.render()
+            #env.render()
             if len(prev_obs) == 0:
                 action = rnd.randrange(start=lower, stop=upper, step=step)
             else:
@@ -236,8 +236,9 @@ def NN_simulation(env, NN, theta_lim, file_name=''):
         scores_arr.append(score)
 
     # Saves the training data to a numpy file
-    training_data_save = np.array(training_data)
-    np.save(file_name, training_data_save)  # saves the training data
+    if save_data:
+        training_data_save = np.array(training_data)
+        np.save(file_name, training_data_save)  # saves the training data
 
     # some stats here, to further illustrate the neural network magic!
     #print('Average score:', mean(scores))
@@ -271,15 +272,15 @@ if __name__ == "__main__":
     #training_data_1 = np.load('training_data_1.npy')
 
     # Load model
-    #model_1 = load_model('cartpole_NN_model_1.tflearn', input_size, output_size)
-    model_2 = load_model('cartpole_model_2.tflearn', input_size, output_size)
+    model_1 = load_model('cartpole_NN_model_1.tflearn', input_size, output_size)
+    #model_2 = load_model('cartpole_model_2.tflearn', input_size, output_size)
 
 
     # Load model and training data, train new model of that
-    #training_data_2 = NN_simulation(env, model_1, theta_limit_2, file_name='training_data_2.npy')
+    #training_data_2 = NN_simulation(env, model_1, theta_limit_2,save_data=True, file_name='training_data_2.npy')
     #model_2 = train_model(training_data_2, model_1, save_model=True, file_name='cartpole_model_2.tflearn')
 
-    training_data_3 = NN_simulation(env, model_2, theta_limit_3, file_name='training_data_3.npy')
+    training_data_3 = NN_simulation(env, model_1, theta_limit_2, save_data=False, file_name='training_data_3.npy')
 
 
 
