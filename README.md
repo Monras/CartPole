@@ -4,13 +4,15 @@ Cartpole main  = koden som kör programmet
 gym_kod = gym koden med våra fixade variabler och villkor
 
 Att göra/testa: 
- - fixa att theta limit ändras
- - Skriv bättre mer allmän kod, ta bort hårdkodning
  - hur många lager/neuroner behövs (testa!)
  - Ändra learning rate och keep_prob?
  - läs på mer om hur tflearn och tensorflow funkar
- - Träna upp stegvis för olika vinklar! 90 -> 45 -> 15
- - Testa olika värden på krafterna, ha fler steg? 
+ - Ta fram bra träningsdata, kör lång tid med högre score_limit
+ - Ta fram en bra modell, kanske olika  modeller för olika vinklar
+
+tips: 
+- Öka tidstegen när simulationen körs
+- Filerna blir enorma om score_limit är för låg och vinkeln för stor
  
 
 Model mappen
