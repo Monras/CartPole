@@ -1,0 +1,17 @@
+Info: 
+Paramaters info
+Theta limit 1: 90
+  Score limit 1: 600
+  Number of runs 1: 10000000
+  Number of steps per run 1: 500
+
+NN simulation
+  Score limit simulation: 2000
+  Number of runs sim: 1000
+  Number of steps per run sim: 500
+
+Model parameters
+  Learning rate: 0.001
+  Keep probability: 0.8
+  epoch: 1
+Force vector:[-300, -200, -100, 0, 100, 200, 300]
