@@ -15,7 +15,7 @@
     """
 
 # imports packages
-from gym_kod_v8 import CartPoleEnv as gym
+from gym_kod_v10 import CartPoleEnv as gym
 from gym import wrappers
 import random as rnd
 import numpy as np
