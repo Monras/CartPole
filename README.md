@@ -2,6 +2,7 @@
 The inverted pendulum mounted on a cart moving in one dimension (also know as a CartPole) has long been seen as a splendid classroom example for an unstable, higly nonlinear system. Which means the system can't be modeled succesfully using only linear equations. 
 Here machine learning, more specifically an artificial neural network is implemented.
 
+<iframe src="//gifs.com/embed/cartpole-OMPqNR" frameborder="0" scrolling="no" width="1808px" height="1080px" style="-webkit-backface-visibility: hidden;-webkit-transform: scale(1);"></iframe>
 
 This repository is the basis of a bachelor's degree thesis in mathematics at the undergraduate level, with a focus on optimization and system theory at the SCI school at the Royal Institute of Technology, by the graduate students Gustaf Holte and Måns Rasmussen.
 
