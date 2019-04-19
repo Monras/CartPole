@@ -16,7 +16,7 @@ The gym_code is based on openAI's gym package for the enviroment (which you can 
 A point system is also implemented to further seperate the good runs from the bad.
 The training data is saved to hdf5 files. 
 The state variables for the CartPole was the following: 
-\theta
+$\theta$
 
 
 The actions alowed was choosen from the force vector: 
