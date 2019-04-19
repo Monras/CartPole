@@ -17,6 +17,7 @@ A point system is also implemented to further seperate the good runs from the ba
 The training data is saved to hdf5 files. 
 The state variables for the CartPole was the following: 
 $\theta$
+$\sum_{n=1}^{10} n^2$
 
 
 The actions alowed was choosen from the force vector: 
