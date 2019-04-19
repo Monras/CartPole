@@ -8,7 +8,9 @@ This repository is the basis of a bachelor's degree thesis in mathematics at the
 ## Artificial neural networks
 Artificial nerual network, ANN, is a computer system that is primarily inspired by the biological neural network found in the human body. The network uses many different algorithms that work together to process and solve complicated problems. Such a network learns from what the user thinks is good and what its future use should be. For example, it may be "reinforced" or "supervised" learning.
 
+
 In reinforced learning, one applies a scoring system to achieve a good model. The idea is that you want to get the network to understand that such a high score as possible is best and based on it, strive for high points and avoid low points. How such a scoring system can be designed can look different, but the most common one is to specify a point limit that the network must achieve in order for the model to be approved. After that, the network has to run through a number of iterations and the models that achieve the requirements are saved for further training or use.
+
 
 If you want to learn more you can read at the [Neural network wikipedia page](https://en.wikipedia.org/wiki/Neural_network).
 
@@ -17,10 +19,14 @@ The gym_code is based on openAI's gym package for the enviroment (which you can 
 A point system is also implemented to further seperate the good runs from the bad.
 The training data is saved to hdf5 files. 
 The state variables for the CartPole was the following: 
+
+
 [x, x_dot, theta, theta_dot, pole length, pole mass, cart mass] 
 
 
 The actions alowed was choosen from the force vector: 
+
+
 [-300, -200, -100, 0, 100, 200, 300]
 
 #### Gym's repository
