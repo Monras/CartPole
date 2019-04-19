@@ -21,13 +21,11 @@ The training data is saved to hdf5 files.
 The state variables for the CartPole was the following: 
 
 
-[x, x_dot, theta, theta_dot, pole length, pole mass, cart mass] 
-
+- [x, x_dot, theta, theta_dot, pole length, pole mass, cart mass] 
 
 The actions alowed was choosen from the force vector: 
 
-
-[-300, -200, -100, 0, 100, 200, 300]
+- [-300, -200, -100, 0, 100, 200, 300]
 
 #### Gym's repository
 Cartpole simulation
