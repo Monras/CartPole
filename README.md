@@ -16,25 +16,16 @@ The gym_code is based on openAI's gym package for the enviroment (which you can 
 A point system is also implemented to further seperate the good runs from the bad.
 The training data is saved to hdf5 files. 
 The state variables for the CartPole was the following: 
-\begin{equation}
-    \begin{bmatrix}
-        x & \dot{x} & \theta & \dot{\theta} & L & m & M
-    \end{bmatrix}
-\end{equation}
+\theta
+
 
 The actions alowed was choosen from the force vector: 
-\begin{equation} \label{forces}
-    F =
-    \begin{bmatrix}
-        -300 & -200 & -100 & 0 & 100 & 200 & 300
-    \end{bmatrix}
-    N.
-\end{equation} 
+
 #### Gym's repository
 Cartpole simulation
 https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
 
-
+#### Version
 _Version 12.0_
 _(Version numbers adhere to [semantic versioning](https://semver.org/))_
 
